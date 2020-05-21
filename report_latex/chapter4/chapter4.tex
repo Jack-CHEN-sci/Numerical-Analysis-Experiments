@@ -1,0 +1,344 @@
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%{
+%\documentclass[twoside,11pt]{article}
+\documentclass[UTF8]{ctexart}
+%%%%% PACKAGES %%%%%%
+\usepackage{pgm2016}
+\usepackage{amsmath}
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
+\usepackage{subcaption}
+\usepackage[english]{babel}	
+\usepackage{paralist}	
+\usepackage[lowtilde]{url}
+\usepackage{fixltx2e}
+\usepackage{listings}
+\usepackage{color}
+\usepackage{hyperref}
+\usepackage{mdframed}
+\usepackage{amssymb}
+
+%\usepackage{auto-pst-pdf}
+\usepackage{pst-all}
+\usepackage{pstricks-add}
+
+%%%%% MACROS %%%%%%
+\algrenewcommand\Return{\State \algorithmicreturn{} }
+\algnewcommand{\LineComment}[1]{\State \(\triangleright\) #1}
+\renewcommand{\thesubfigure}{\roman{subfigure}}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+\lstdefinestyle{mystyle}{
+	backgroundcolor=\color{backcolour},  
+	commentstyle=\color{codegreen},
+	keywordstyle=\color{magenta},
+	numberstyle=\tiny\color{codegray},
+	stringstyle=\color{codepurple},
+	basicstyle=\footnotesize,
+	breakatwhitespace=false,        
+	breaklines=true,                
+	captionpos=b,                    
+	keepspaces=true,                
+	numbers=left,                    
+	numbersep=5pt,                  
+	showspaces=false,                
+	showstringspaces=false,
+	showtabs=false,                  
+	tabsize=2
+}
+\lstset{style=mystyle}
+
+\newenvironment{problem}[2][问题]
+{\begin{mdframed}[backgroundcolor=gray!20] \textbf{#1 #2} \\}
+	{\end{mdframed}}
+
+\newenvironment{dingyi}[2][定义]
+{\begin{mdframed}[backgroundcolor=gray!20] \textbf{#1 #2} \\}
+	{\end{mdframed}}
+
+\newenvironment{dingli}[2][定理]
+{\begin{mdframed}[backgroundcolor=gray!20] \textbf{#1 #2} \\}
+	{\end{mdframed}}
+
+\newcommand{\tabincell}[2]{\begin{tabular}{@{}#1@{}}#2\end{tabular}}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+
+
+%%%%%%%%%%%%%%%%%%%%Information%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand\course{sd03431280}
+\newcommand\courseName{数值计算方法}
+\newcommand\semester{2020·春季}
+\newcommand\assignmentNumber{4}
+\newcommand\studentName{陈路}
+\newcommand\studentEmail{chenlu.scien@gmail.com}
+\newcommand\studentNumber{201800301206}
+\newcommand\addr{泰山学堂2018级计算机取向}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    \ShortHeadings{山东大学\quad \semester\quad  \course\quad \courseName}{\addr \quad \studentName \quad \studentNumber}
+    \firstpageno{1}
+    
+    \begin{document}
+    
+    \title{第\assignmentNumber 章\quad 数值微分与数值积分}
+    
+    \author{\name \studentName \email \studentEmail \\
+    \studentNumber
+    }
+    
+    \maketitle
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{分析讨论题}
+
+\begin{problem}{1.1}
+	推导复合(Composite)梯形公式及其误差估计.
+\end{problem}
+\textbf{解}:\\
+\begin{dingli}{1}
+	复合梯形公式：设等距节点$[x_k,x_{k+1}], k=0,1,\cdots,M$将区间$[a,b]$划分为宽度为
+	$h=(b-a)/M$的$M$个子区间$x_k=a+kh$.M个子区间的组合梯形公式
+	\begin{align}
+		T(f, h)=\frac{h}{2}(f(a)+f(b))+h \sum_{k=1}^{M-\mathrm{r}} f\left(x_{k}\right)\notag
+	\end{align}
+	是区间$[a,b]$上$f(x)$积分的逼近，即
+	\begin{align}
+		\int_{a}^{b} f(x) \mathrm{d} x \approx T(f, h) \notag
+	\end{align}
+\end{dingli}
+\textbf{证明}：\\
+在每个子区间$[x_{k-1},x_{k}]$上应用梯形公式
+\begin{align}
+	\int_{x_0}^{x_1} f(x) d x \approx \frac{h}{2} (f(x_0) + f(x_1))
+\end{align}
+利用子区间上积分的可加性: 
+\begin{align}
+	\int_{a}^{b} f(x) d x=\sum_{k=1}^{M} \int_{x_{k-1}}^{x_{k}} f(x) d x \approx \sum_{k=1}^{M} \frac{h}{2}\left(f\left(x_{k-1}\right)+f\left(x_{k}\right)\right)\notag
+\end{align}
+证毕. $\hfill\blacksquare$ 
+\begin{dingli}{2}
+	复合梯形公式的误差分析：设区间$[a,b]$划分为宽度为$h=(b-a)/M$的$M$个子区间$x_k=a+kh$，组合梯形公式
+	\begin{align}
+	T(f, h)=\frac{h}{2}(f(a)+f(b))+h \sum_{k=1}^{M-\mathrm{r}} f\left(x_{k}\right)\notag
+	\end{align}
+	是对积分
+	\begin{align}
+	\int_{a}^{b} f(x) \mathrm{d} x = T(f, h) + E_{T}(f,h) \notag
+	\end{align}
+	的逼近. 如果$f\in C^{2}[a,b]$, 则存在值$c, a<c<b$, 使得误差项$E_{T}(f,h)$具有形式
+	\begin{align}
+	E_{T}(f, h)=\frac{-(b-a) f^{(2)}(c) h^{2}}{12}=O\left(h^{2}\right)\notag
+	\end{align}
+\end{dingli}
+\textbf{证明}：\\
+首先确定公式在区间$[x_0,x_1]$上的误差项. 对拉格朗日多项式$P_{1}(x)$及其余项进行积分得：
+\begin{align}
+	\int_{x_{0}}^{x_{1}} f(x) d x=\int_{x_{0}}^{x_{1}} P_{1}(x) d x+\int_{x_{0}}^{x_{1}} \frac{\left(x-x_{0}\right)\left(x-x_{1}\right) f^{(2)}(c(x))}{2 !} d x \notag
+\end{align}
+在区间$[x_0,x_1]$上, 项$\left(x-x_{0}\right)\left(x-x_{1}\right)$符号不变, 而$f^{(2)}(c(x))$连续. 因此由积分第二中值定理知: 存在值$c_1$, 使得
+\begin{align}
+	\int_{x_{0}}^{x_{1}} f(x) d x=\frac{h}{2}\left(f_{0}+f_{1}\right)+f^{(2)}\left(c_{1}\right) \int_{x_{0}}^{x_{1}} \frac{\left(x-x_{0}\right)\left(x-x_{1}\right)}{2 !} d x \notag
+\end{align}
+对上式右端的积分进行变量代换$x=x_0 + ht$:
+\begin{align}
+	\begin{aligned}
+	\int_{x_{0}}^{x_{1}} f(x) d x &=\frac{h}{2}\left(f_{0}+f_{1}\right)+\frac{f^{(2)}\left(c_{1}\right)}{2} \int_{0}^{1} h(t-0) h(t-1) h d t \\
+	&=\frac{h}{2}\left(f_{0}+f_{1}\right)+\frac{f^{(2)}\left(c_{1}\right) h^{3}}{2} \int_{0}^{1}\left(t^{2}-t\right) d t \\
+	&=\frac{h}{2}\left(f_{0}+f_{1}\right)-\frac{f^{(2)}\left(c_{1}\right) h^{3}}{12}
+	\end{aligned}\notag
+\end{align}
+将所有区间$[x_{k-1},x_{k}], k=1,2,\cdots,M$上的误差相加，得：
+\begin{align}
+	\begin{aligned}
+	\int_{a}^{b} f(x) d x &=\sum_{k=1}^{M} \int_{x_{k-1}}^{x_{k}} f(x) d x \\
+	&=\sum_{k=1}^{M} \frac{h}{2}\left(f\left(x_{k-1}\right)+f\left(x_{k}\right)\right)-\frac{h^{3}}{12} \sum_{k=1}^{M} f^{(2)}\left(c_{k}\right)
+	\end{aligned} \notag
+\end{align}
+第一个和式为复合梯形公式$T(f,h)$. 在第二项中,将一个$h$因子用等式$h=(b-a)/M$替换,得:
+\begin{align}
+	\int_{a}^{b} f(x) d x = T(f,h) - \frac{(b-a)h^{2}}{12} \left( \frac{1}{M} \sum_{k=1}^{M} f^{(2)}\left(c_{k}\right) \right) \notag
+\end{align}
+括号中的项可看成是2阶导数的一个均值,因此可用$f^{(2)}(c)$替换,从而得到
+\begin{align}
+	\int_{a}^{b} f(x) d x = T(f,h) - \frac{(b-a) f^{(2)}(c) h^{2}}{12} \notag
+\end{align}
+证毕. $\hfill\blacksquare$ 
+
+\begin{problem}{1.2}
+	推导基于误差控制的逐次半积分梯形公式及其误差估计.
+\end{problem}
+\textbf{解}:\\
+\begin{dingyi}{1}
+	梯形公式序列: 定义$T(0)=(h/2)(f(a)+f(b))$为步长$h=b-a$的梯形公式. 对于所有$J≥1$, 定义$T(J) = T(f,h)$, 其中$T(f,h)$为步长$h=(b-a)/2^{J}$的梯形公式.
+\end{dingyi}
+\begin{dingli}{3}
+	由$T(0)=(h/2)(f(a)+f(b))$开始，梯形公式序列${T(J)}$可由以下递归公式生成：
+	\begin{align}
+		T(J)=\frac{T(J-1)}{2}+h \sum_{k=1}^{M} f\left(x_{2 k-1}\right), \quad J=1,2, \cdots \notag
+	\end{align}
+	其中，$h=(b-a)/2^{J}$, $x_k = a + kh, k=0,1,\cdots,M$.
+\end{dingli}
+\textbf{证明}：\\
+对偶数节点$x_{0} < x_{2} < \cdots < x_{2M-2} < x_{2M}$，使用步长为$2h$的梯形公式：
+\begin{align}
+	T(J-1)=\frac{2 h}{2}\left(f_{0}+2 f_{2}+2 f_{4}+\cdots+2 f_{2 M-4}+2 f_{2 M-2}+f_{2 M}\right) \notag
+\end{align}
+对全体节点$x_{0} < x_{1} < x_{2} < \cdots < x_{2M-1} < x_{2M}$，使用步长为$h$的梯形公式：
+\begin{align}
+	T(J)=\frac{h}{2}\left(f_{0}+2 f_{1}+2 f_{2}+\cdots+2 f_{2 M-2}+2 f_{2 M-1}+f_{2 M}\right) \notag
+\end{align}
+将上式中奇数项和偶数项的和分别累加，得：
+\begin{align}
+	\begin{aligned}
+		T(J) &=\frac{h}{2}\left(f_{0}+2 f_{2}+\cdots+2 f_{2 M-2}+f_{2 M}\right) + h \sum_{k=1}^{M} f_{2k-1} &= \frac{T(J-1)}{2}+h \sum_{k=1}^{M} f\left(x_{2 k-1}\right)
+	\end{aligned} \notag
+\end{align}
+证毕. $\hfill\blacksquare$
+
+\begin{problem}{2}
+	令$h=(b-a)/3, x_0 = a, x_1 = a + h, x_2 = b$. 请给出积分公式
+	\begin{align}
+		\int_{a}^{b} f(x) \mathrm{d} x=\frac{9}{4} h f\left(x_{1}\right)+\frac{3}{4} h f\left(x_{2}\right)\notag
+	\end{align}
+	的精确度.
+\end{problem}
+\textbf{解}:\\
+由精确度的定义：\\
+一个数值积分公式$Q(f)$的精确度是一个最大的正整数$n$，使得
+\begin{align}
+	\int_{a}^{b} x^{k} \mathrm{d} x=Q(x^{k}), k=0,1,\cdots,n.\notag
+\end{align}
+分别令$f(x)=x^{0}=1, f(x)=x, f(x)=x^{2}, \cdots$\\
+积分得：$\int_{a}^{b} x^{k} \mathrm{d} x=\frac{1}{k+1} (b^{k+1}-a^{k+1}).$\\
+计算过程如表\ref{t1}所示.
+\begin{table}[htbp]
+	\centering
+	\caption{积分公式精确度计算过程}
+	\label{t1}
+	\begin{tabular}{|l|c|l|l|}
+		\hline$k$ & $f(x)$ & $\frac{1}{k+1}\left(b^{k+1}-a^{k+1}\right)$ & $\frac{9}{4} h f(a+h)+\frac{3}{4} h f(b)$ \\
+		\hline 0 & 1 & $b-a$ & $\frac{9}{4} h+\frac{3}{4} h=3 h=b-a$ \\
+		\hline 1 & $x$ & $\frac{1}{2}\left(b^{2}-a^{2}\right)$ & \tabincell{l}{$\frac{9}{4} h(a+h)+\frac{3}{4} h(b)=\frac{3 h}{4}(3(a+h)+b)$ $\frac{b-a}{4}(3 a+b-a+b)$ \\ $=\frac{b-a}{4}(2 a+2 b)=\frac{1}{2} b^{2}-\frac{1}{2} a^{2}$}\\
+		\hline 2 & $x^{2}$ & $\frac{1}{3} b^{3}-\frac{1}{3} a^{3}$ & $\frac{9}{4} h(a+h)^{2}+\frac{3}{4} h b^{2}=\frac{1}{3} b^{3}-\frac{1}{3} a^{3}$ \\
+		\hline 3 & $x^{3}$ & $\frac{1}{4} b^{4}-\frac{1}{4} a^{4}$ & $\frac{9}{4} h(a+h)^{3}+\frac{3}{4} h b^{3}=-\frac{1}{9} b a^{3}+\frac{1}{6} b^{2} a^{2}-\frac{1}{9} b^{3} a+\frac{5}{18} b^{4}-\frac{2}{9} a^{4}$ \\
+		\hline
+	\end{tabular}
+\end{table}
+\\可见，积分公式$\int_{a}^{b} f(x) \mathrm{d} x=\frac{9}{4} h f\left(x_{1}\right)+\frac{3}{4} h f\left(x_{2}\right)$的精确度为2.
+\section{上机实验题}
+
+\begin{problem}{3.1}
+	自行编制复合梯形公式、Simpson公式的计算程序.
+\end{problem}
+\textbf{复合梯形公式的代码实现}
+\begin{lstlisting}[language=matlab]
+function s = traprl(f, a, b, M)
+% Composite Trapezoidal Rule
+% Input  - f   the integrand input as string 'f'
+%        - a,b upper and lower limits of integration
+%        - M   the number of subintervals
+% Output - s   the sum of Trapezoidal Rule
+
+h = (b-a)/M;
+s = 0;
+
+for k = 1 : (M-1)
+	x = a + h*k;
+	s = s + feval(f,x);
+end
+s = h*(feval(f,a) + feval(f,b))/2 + h*s;
+
+end
+\end{lstlisting}
+\textbf{复合Simpson公式的代码实现}
+\begin{lstlisting}[language=matlab]
+function s = simprl(f, a, b, M)
+% Composite Simpson Rule
+% Input  - f   the integrand input as string 'f'
+%        - a,b upper and lower limits of integration
+%        - M   the number of subintervals
+% Output - s   the sum of Trapezoidal Rule
+
+h = (b-a)/(2*M);
+s1 = 0;
+s2 = 0;
+
+for k = 1 : M
+	x = a + h*(2*k-1);
+	s1 = s1 + feval(f,x);
+end
+for k = 1 : (M-1)
+	x = a + h*(2*k);
+	s2 = s2 + feval(f,x);
+end
+s = h*(feval(f,a) + feval(f,b) + 4*s1 + 2*s2)/3;
+
+end
+\end{lstlisting}
+
+\begin{problem}{3.2}
+	取$h=0.01$，分别利用复合梯形公式、Simpson公式计算定积分
+	\begin{align}
+		I(f)=\frac{1}{\sqrt{2 \pi}} \int_{0}^{1} \exp {-\frac{x^{2}}{2}} \mathrm{d} x\notag
+	\end{align}
+	试与精确解比较，说明两种格式的优劣.
+\end{problem}
+\textbf{解}:\\
+\begin{lstlisting}[language=matlab]
+function y = f(x)
+y = (1/sqrt(2*pi)) * exp(-(x^2)/2);
+\end{lstlisting}
+\begin{lstlisting}[language=matlab]
+syms x;
+t = traprl('f',0,1,100);
+s = simprl('f',0,1,100);
+\end{lstlisting}
+运行上述程序，得:\\
+复合梯形公式求解结果$t = 0.341342729639117$, 
+复合Simpson公式求解结果$s = 0.341344746070223$,
+精确值$r = 0.341344746068543$.
+
+\begin{problem}{3.3}
+	若取计算精度为$10^{-4}$，则$h = ?$，$n = ?$.
+\end{problem}
+\textbf{解}:\\
+\textbf{I}. 考虑使用复合梯形公式的情况\\
+被积函数为$f(x)= \exp (-\frac{x^{2}}{2})$，其前两阶导数为
+\begin{align}
+	f'(x) = -x \cdot \exp (-\frac{x^{2}}{2});
+	f''(x) = (x^2 - 1) \exp (-\frac{x^{2}}{2}). \notag
+\end{align}
+区间$[0,1]$上$f''(x)$单调递增，$f''(0)=-1, f''(1)=0$，$|f''(x)|$的最大值在端点$x=0$处取得，从而对$0\leq c \leq 1$，$|f''(c)| \leq |f''(0)| = 1$.\\
+代入复合梯形公式误差项得
+\begin{align}
+	|E_{T}(f, h)| = \frac{|-(b-a) f^{(2)}(c) h^{2}|}{12} \leq \frac{h^2}{12}. \notag
+\end{align}
+步长$h$与$n$满足关系$h=1/n$，代入上式，得：
+\begin{align}
+	|E_{T}(f, h)| \leq \frac{1}{12\cdot n^2} \leq 10^{-4}. \notag
+\end{align}
+解得：$n>28.8675$. \\
+由于$n$必须为整数，取$n=29$，对应的步长$h=1/n\approx 0.0344827586$.\\
+\textbf{II}. 考虑使用复合Simpson公式的情况\\
+被积函数为$f(x)= \exp (-\frac{x^{2}}{2})$，其四阶导数为
+\begin{align}
+	f^{(4)}(x) = (x^4 - 6x^2 + 3) \exp (-\frac{x^{2}}{2}). \notag
+\end{align}
+区间$[0,1]$上$f^{(4)}(x)$单调递减，$f^{(4)}(0)=3, f^{(4)}(1)=-2/\sqrt{e}$，$|f^{(4)}(x)|$的最大值在端点$x=0$处取得，从而对$0\leq c \leq 1$，$|f^{(4)}(c)| \leq |f^{(4)}(0)| = 3$.\\
+代入复合Simpson公式误差项得
+\begin{align}
+	|E_{T}(f, h)| = \frac{|-(b-a) f^{(4)}(c) h^{4}|}{180} \leq \frac{3h^4}{180} = \frac{h^4}{60}. \notag
+\end{align}
+步长$h$与$n$满足关系$h=1/n$，代入上式，得：
+\begin{align}
+	|E_{T}(f, h)| \leq \frac{1}{60\cdot n^4} \leq 10^{-4}. \notag
+\end{align}
+解得：$n>3.5930$. \\
+由于$n$必须为整数，取$n=4$，对应的步长$h=1/n\approx 0.25$.
+
+\end{document}

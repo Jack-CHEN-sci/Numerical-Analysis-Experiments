@@ -1,0 +1,662 @@
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%{
+%\documentclass[twoside,11pt]{article}
+\documentclass[UTF8]{ctexart}
+%%%%% PACKAGES %%%%%%
+\usepackage{pgm2016}
+\usepackage{amsmath}
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
+\usepackage{subcaption}
+\usepackage[english]{babel}	
+\usepackage{paralist}	
+\usepackage[lowtilde]{url}
+\usepackage{fixltx2e}
+\usepackage{listings}
+\usepackage{color}
+\usepackage{hyperref}
+\usepackage{mdframed}
+
+%\usepackage{auto-pst-pdf}
+\usepackage{pst-all}
+\usepackage{pstricks-add}
+
+%%%%% MACROS %%%%%%
+\algrenewcommand\Return{\State \algorithmicreturn{} }
+\algnewcommand{\LineComment}[1]{\State \(\triangleright\) #1}
+\renewcommand{\thesubfigure}{\roman{subfigure}}
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+\lstdefinestyle{mystyle}{
+	backgroundcolor=\color{backcolour},  
+	commentstyle=\color{codegreen},
+	keywordstyle=\color{magenta},
+	numberstyle=\tiny\color{codegray},
+	stringstyle=\color{codepurple},
+	basicstyle=\footnotesize,
+	breakatwhitespace=false,        
+	breaklines=true,                
+	captionpos=b,                    
+	keepspaces=true,                
+	numbers=left,                    
+	numbersep=5pt,                  
+	showspaces=false,                
+	showstringspaces=false,
+	showtabs=false,                  
+	tabsize=2
+}
+\lstset{style=mystyle}
+
+\newenvironment{problem}[2][问题]
+{\begin{mdframed}[backgroundcolor=gray!20] \textbf{#1 #2} \\}
+	{\end{mdframed}}
+
+\newenvironment{dingyi}[2][定义]
+{\begin{mdframed}[backgroundcolor=gray!20] \textbf{#1 #2} \\}
+	{\end{mdframed}}
+
+\newenvironment{dingli}[2][定理]
+{\begin{mdframed}[backgroundcolor=gray!20] \textbf{#1 #2} \\}
+	{\end{mdframed}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+
+
+%%%%%%%%%%%%%%%%%%%%Information%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand\course{sd03431280}
+\newcommand\courseName{数值计算方法}
+\newcommand\semester{2020·春季}
+\newcommand\assignmentNumber{9}
+\newcommand\studentName{陈路}
+\newcommand\studentEmail{chenlu.scien@gmail.com}
+\newcommand\studentNumber{201800301206}
+\newcommand\addr{泰山学堂2018级计算机取向}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    \ShortHeadings{山东大学\quad \semester\quad  \course\quad \courseName}{\addr \quad \studentName \quad \studentNumber}
+    \firstpageno{1}
+    
+    \begin{document}
+    
+    \title{第\assignmentNumber 章\quad 特征值与特征向量}
+    
+    \author{\name \studentName \email \studentEmail \\
+    \studentNumber
+    }
+    
+    \maketitle
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+本文首先简要总结特征值与特征向量的基础知识，给出相关的定义和定理。进而对求解特征值的幂方法和QR方法进行代码实现，并结合具体题目运行程序，展示不同算法的结果。
+
+\section{特征值与特征向量基础知识}
+\subsection{特征值与特征向量定义}
+\begin{dingyi}{1}
+	如果A是一个$n\times n$实矩阵，则它的n个\textbf{特征值}$\lambda_1, \lambda_2, \cdots, \lambda_n$是下面$n$阶特征多项式的实根或复根：
+	\begin{align}
+		p(\lambda)=det(\mathbf{A} - \lambda \mathbf{I}). \notag
+	\end{align}
+\end{dingyi}
+\begin{dingyi}{2}
+	如果$\lambda$是$\mathbf{A}$的特征值并且非零向量$\mathbf{V}$具有如下特性：
+	\begin{align}
+	\mathbf{AV} = \lambda \mathbf{V}. \notag
+	\end{align}
+\end{dingyi}
+\subsection{特征值范围估计}
+\begin{dingyi}{3}
+	设$\|X\|$是向量范数，则对应的\textbf{自然矩阵范数}为
+	\begin{align}
+		\|A\|=\max _{\|X\|=1}\left\{\frac{\|A X\|}{\|X\|}\right\} \notag
+	\end{align}
+	范数$\|A\|_{\infty}$可表示为
+	\begin{align}
+		\|A\|_{\infty}=\max _{1\leq i\leq n}\left\{\sum_{j=1}^{n}|a_{ij}|\right\} \notag
+	\end{align}
+\end{dingyi}
+\begin{dingli}{1}
+	如果$\lambda$是矩阵$\mathbf{A}$的任意特征值，则对于所有自然矩阵范数$\|A\|$，有
+	\begin{align}
+		|\lambda| \leq \|A\| \notag
+	\end{align}
+\end{dingli}
+\begin{dingli}{2}
+	\textbf{Gerschgorin圆盘定理}:\\
+	设$A$是一个$n\times n$矩阵，$C_j$表示位于复平面$z=x+iy$上，以$a_{jj}$为圆心，以
+	\begin{align}
+		r_j = \sum_{k=1,k\neq j}^{n} |a_{jk}|, \quad j=1,2,\cdots,n \notag
+	\end{align}
+	为半径的圆盘，即$C_j$包含所有满足条件
+	\begin{align}
+			C_j = \{z:|z-a_{jj}|\leq r_j\} \notag
+	\end{align}
+	的复数$z=x+iy$.\\
+	如果$S=\cup^{n}_{i=1} C_i$，则$A$的所有特征值包含在集合$S$中.\\
+	进一步可得，以上$k$个圆盘的并如果与其余的$n-k$个圆盘不相交，则它们一定包含$k$个特征值（含重复）.
+\end{dingli}
+\begin{dingli}{3}
+	\textbf{谱半径定理}:\\
+	设$A$是一个对称阵，则$A$的谱半径定义为$\|A\|_{2}$，并且满足如下关系
+	\begin{align}
+		\|A\|_{2} = \max{|\lambda_1|, |\lambda_2|, \cdots, |\lambda_n|}. \notag
+	\end{align}
+\end{dingli}
+\section{上机实验题}
+
+\begin{problem}{1}
+	已知矩阵
+	\begin{align}
+		\mathbf{A}=\left[\begin{array}{ccc}
+		4 & -1 & 1 \\
+		-1 & 3 & -2 \\
+		1 & -2 & 3
+		\end{array}\right]\notag
+	\end{align}
+	是一个对称矩阵，且其特征值为$\lambda_1 = 6$, $\lambda_2 = 3$, $\lambda_3 = 1$.\\
+	分别利用幂法、对称幂法、反幂法求其最大特征值和特征向量.\\
+	注意:可取初始向量$\textbf{x}^{(0)}=(1\quad 1\quad 1)^{T}$.
+\end{problem}
+\textbf{解}:\\
+(1)幂法\\
+代码实现如下:
+\begin{lstlisting}[language=matlab]
+function [lambda, V] = power1 (A, X, epsilon, max1)
+% Input  - A   is an nxn matrix
+%        - X   is the nx1 starting vector
+%        - epsilon   is the tolerance
+%        - max1 is the maximum number of iterations
+% Output - lambda is the dominant eigenvalue
+%        - V is the dominant eigenvector
+
+% Initialization
+lambda = 0 ;
+cnt = 0 ;
+err = 1;
+state = 1 ;
+
+while ((cnt<=max1) && (state==1))
+	Y = A*X;
+	%Normalize Y
+	[m j] = max(abs(Y));
+	c1 = m;
+	dc = abs(lambda - c1) ;
+	Y = (1/c1)*Y;
+	%Update X and lambda and check for convergence
+	dv = norm(X- Y) ;
+	err = max(dc,dv) ;
+	X = Y;
+	lambda = c1;
+	state = 0;
+	if (err > epsilon)
+		state = 1;
+	end
+	cnt = cnt + 1;
+end
+V = X;
+end
+\end{lstlisting}
+运行程序
+\begin{lstlisting}[language=matlab]
+syms A X epsilon max1;
+A = [4 -1 1;-1 3 -2;1 -2 3];
+X = [1 1 1]';
+epsilon = 0.0000000001;
+max1 = 100;
+[lambda, V] = power1 (A, X, epsilon, max1)
+\end{lstlisting}
+求得:\\
+最大特征值为$5.999999999912689$，对应的特征向量为
+$$V=(1.000000000000000 \quad -0.999999999978172 \quad 0.999999999978172)^{T}$$
+(2)对称幂法\\
+代码实现如下:
+\begin{lstlisting}[language=matlab]
+function [lambda,V] = sympower(A, X, epsilon, max1)
+% Input  - A   is an nxn matrix
+%        - X   is the nx1 starting vector
+%        - epsilon   is the tolerance
+%        - max1 is the maximum number of iterations
+% Output - lambda is the dominant eigenvalue
+%        - V is the dominant eigenvector
+
+X = X/norm(X,2);
+for k = 2:max1
+	Y = A*X;
+	u = X'*Y;
+	if norm(Y,2) == 0
+		break, end
+	err = norm((X-Y/norm(Y,2)),2);
+	X = Y/norm(Y,2);
+	if(err < epsilon)
+		break, end
+end
+lambda = u;
+V = X;
+end
+\end{lstlisting}
+求得:\\
+最大特征值为$5.999999999999999$，对应的特征向量为
+$$V=(0.577350269256838 \quad -0.577350269156020 \quad 0.577350269156020)^{T}$$
+(3)反幂法\\
+代码实现如下:
+\begin{lstlisting}[language=matlab]
+function [lambda,V] = invpower(A, X, alpha, epsilon, max1)
+% Input  - A   is an nxn matrix
+%        - X   is the nx1 starting vector
+%        - alpha    is the given shift
+%        - epsilon  is the tolerance
+%        - max1 is the maximum number of iterations
+% Output - lambda is the dominant eigenvalue
+%        - V is the dominant eigenvector
+
+% Initilization
+[n n] = size(A);
+A = A - alpha * eye(n);
+lambda = 0;
+cnt = 0;
+err = 1;
+state = 1;
+
+while ((cnt <= max1) && (state == 1))
+	% solve system AY=X
+	Y = A\X;
+	% normalizae Y
+	[m j] = max(abs(Y));
+	c1 = m;
+	dc = abs(lambda - c1);
+	Y = (1/c1)*Y;
+	% update X and lambda and check for convergence
+	dv = norm(X - Y);
+	err = max(dc, dv);
+	X = Y;
+	lambda = c1;
+	state = 0;
+	if (err > epsilon)
+		state = 1;
+	end
+	cnt = cnt+1;
+end
+lambda = alpha + 1/c1;
+V = X;
+end
+\end{lstlisting}
+运行程序
+\begin{lstlisting}[language=matlab]
+syms A X alpha epsilon max1;
+A = [4 -1 1;-1 3 -2;1 -2 3];
+X = [1 1 1]';
+alpha = 5.8;
+epsilon = 0.0000000001;
+max1 = 100;
+[lambda, V] = power1 (A, X, alpha, epsilon, max1)
+\end{lstlisting}
+求得:\\
+最大特征值为$6.000000000000043$，对应的特征向量为
+$$V=(1.000000000000000 \quad -0.999999999999947 \quad 0.999999999999947)^{T}$$
+
+
+\begin{problem}{2}
+	分别利用Householder变换和Givens旋转变化方法求\textbf{A}的\textbf{QR}分解
+	\begin{align}
+		\mathbf{A}=\left[\begin{array}{ccc}
+		1 & 0 & 0 \\
+		1 & 1 & 0 \\
+		1 & 1 & 1 \\
+		1 & 1 & 1
+		\end{array}\right]\notag
+	\end{align}
+	写出每一步具体求解过程，及最终分解结果.
+\end{problem}
+\textbf{解}:\\
+
+1. 使用Householder变换求矩阵$A$的QR分解：\\
+\begin{align}
+\mathbf{A^{(1)}}=\mathbf{A}=\left[\begin{array}{ccc}
+1 & 0 & 0 \\
+1 & 1 & 0 \\
+1 & 1 & 1 \\
+1 & 1 & 1
+\end{array}\right]\notag
+\end{align}
+Step1: 对于$A$的第一列列向量
+\begin{align}
+	\mathbf{x}_{1}=\mathbf{a}_{1: 4,1}^{(1)}=\left[\begin{array}{c}
+	1 \\
+	1 \\
+	1 \\
+	1
+	\end{array}\right], \quad\left\|\mathbf{x}_{1}\right\|_{2}=2 \notag
+\end{align}
+对应的Householder向量为
+\begin{align}
+	\begin{array}{l}
+	\qquad \tilde{\mathbf{v}}_{1}=\mathbf{x}_{1}+\left\|\mathbf{x}_{1}\right\|_{2} \mathbf{e}_{1}=\left[\begin{array}{c}
+	1 \\
+	1 \\
+	1 \\
+	1 
+	\end{array}\right]+2\left[\begin{array}{r}
+	1 \\
+	0 \\
+	0 \\
+	0 
+	\end{array}\right]=\left[\begin{array}{c}
+	3 \\
+	1 \\
+	1 \\
+	1 
+	\end{array}\right]
+	\end{array} \notag
+\end{align}
+借助此向量，构造Householder反射
+\begin{align}
+	c=\frac{2}{\tilde{\mathbf{v}}_{1}^{T} \tilde{\mathbf{v}}_{1}}=1/6, \quad \tilde{H}_{1}=I-c \tilde{\mathbf{v}}_{1} \tilde{\mathbf{v}}_{1}^{T} \notag
+\end{align}
+将此反射作用于$A^{(1)}$，得
+\begin{align}
+	A^{(2)} = \tilde{H}_{1} A^{(1)} = 
+	\left[\begin{array}{ccc}
+	2 &	1.5 &	1 \\
+	0 &	-0.866025403784438 &	-0.577350269189625 \\
+	0 &	1.11022302462516e-16 &	-0.816496580927726 \\
+	0 &	1.11022302462516e-16 &	1.11022302462516e-16
+	\end{array}\right]  \notag
+\end{align}
+Step2: 对于$A^{(2)}$的第二列列向量2至4行的分量
+\begin{align}
+\mathbf{x}_{2}=\mathbf{a}_{2: 4,2}^{(2)}=\left[\begin{array}{c}
+-0.866025403784438 \\
+1.11022302462516e-16 \\
+1.11022302462516e-16
+\end{array}\right], \quad\left\|\mathbf{x}_{2}\right\|_{2}=0.866025403784438 \notag
+\end{align}
+对应的Householder向量为
+\begin{align}
+\begin{aligned}
+	\qquad \tilde{\mathbf{v}}_{2}=\mathbf{x}_{2}+\left\|\mathbf{x}_{2}\right\|_{2} \mathbf{e}_{1} &=\left[\begin{array}{c}
+	-0.866025403784438 \\
+	1.11022302462516e-16 \\
+	1.11022302462516e-16
+	\end{array}\right]+0.866025403784438\left[\begin{array}{r}
+	1 \\
+	0 \\
+	0 
+	\end{array}\right]\\
+	&=\left[\begin{array}{c}
+	0 \\
+	1.11022302462516e-16 \\
+	1.11022302462516e-16
+	\end{array}\right] \notag
+\end{aligned}	
+\end{align}
+借助此向量，构造Householder反射
+\begin{align}
+c=\frac{2}{\tilde{\mathbf{v}}_{2}^{T} \tilde{\mathbf{v}}_{2}}=8.112963841460618e+31, \quad \tilde{H}_{2}=I-c \tilde{\mathbf{v}}_{2} \tilde{\mathbf{v}}_{2}^{T} \notag
+\end{align}
+将此反射作用于$A^{(2)}$，得
+\begin{align}
+\begin{aligned}
+	\tilde{H}_{2} A^{(2)} &= 
+	\left[\begin{array}{cc}
+	0.866025403784438 &	0.577350269189625 \\
+	0 &	-0.816496580927726 \\
+	0 &	3.70074341541719e-17
+	\end{array}\right] \notag \\
+	A^{(3)} &=  
+	\left[\begin{array}{ccc}
+	2.00000000000000 &	1.50000000000000 &	1.00000000000000 \\
+	0 &	0.866025403784438 &	0.577350269189625 \\
+	0 &	0 &	-0.816496580927726 \\
+	0 &	0 &	3.70074341541719e-17
+	\end{array}\right].\notag
+\end{aligned}
+\end{align}
+Step3: 对于$A^{(3)}$的第三列列向量3至4行的分量
+\begin{align}
+\mathbf{x}_{3}=\mathbf{a}_{3: 4,3}^{(3)}=\left[\begin{array}{c}
+-0.816496580927726 \\
+3.70074341541719e-17
+\end{array}\right], \quad\left\|\mathbf{x}_{3}\right\|_{2}=0.816496580927726 \notag
+\end{align}
+对应的Householder向量为
+\begin{align}
+\begin{array}{l}
+\qquad \tilde{\mathbf{v}}_{3}=\mathbf{x}_{3}+\left\|\mathbf{x}_{3}\right\|_{2} \mathbf{e}_{1}=\left[\begin{array}{c}
+-0.816496580927726 \\
+3.70074341541719e-17
+\end{array}\right]+0.816496580927726\left[\begin{array}{r}
+1 \\
+0 
+\end{array}\right]=\left[\begin{array}{c}
+0 \\
+0
+\end{array}\right]
+\end{array} \notag
+\end{align}
+借助此向量，构造Householder反射
+\begin{align}
+c=\frac{2}{\tilde{\mathbf{v}}_{3}^{T} \tilde{\mathbf{v}}_{3}}=1/6, \quad \tilde{H}_{3}=I-c \tilde{\mathbf{v}}_{3} \tilde{\mathbf{v}}_{3}^{T} \notag
+\end{align}
+将此反射作用于$A^{(3)}$，得
+\begin{align}
+\begin{aligned}
+\tilde{H}_{3} A^{(3)} &= 
+\left[\begin{array}{c}
+0.816496580927726 \\
+0
+\end{array}\right],\\
+R = A^{(4)} &=  
+\left[\begin{array}{ccc}
+2.00000000000000 &	1.50000000000000 &	1.00000000000000 \\
+0 &	0.866025403784438 &	0.577350269189625 \\
+0 &	0 &	0.816496580927726 \\
+0 &	0 &	0
+\end{array}\right].\notag
+\end{aligned}
+\end{align}
+将以上的Householder变换矩阵顺序相乘，得到正交矩阵$Q$
+\begin{align}
+	Q = H_{1}H_{2}H_{3} = 
+	\left[\begin{array}{cccc}
+	-0.500000000000000 &  0.866025403784439 &                  0 &  0.000000000000000 \\
+	-0.500000000000000 & -0.288675134594813 &  0.816496580927726 &  0.000000000000000 \\
+	-0.500000000000000 & -0.288675134594813 & -0.408248290463863 & -0.707106781186548 \\
+	-0.500000000000000 & -0.288675134594813 & -0.408248290463863 &  0.707106781186547
+	\end{array}\right].\notag
+\end{align}
+Householder QR分解的代码实现如下：
+\begin{lstlisting}[language=matlab]
+function [W,A] = house(A)
+% Householder QR Factorization
+% Input  - A  a symmetric matrix can be factorized as Q*R
+% Output - W  NOT the factorized orthogonal matrix Q!
+%        - A  the upper triangle matrix
+
+[m,n] = size(A);
+W = zeros(m, n);
+for k = 1:n
+	x = A(k:m, k);
+	v = x;
+	v(1) = sign(x(1))*norm(x) + v(1);
+	v = v/norm(v);
+	A(k:m,k:n) = A(k:m,k:n) - 2*v* (v'*A(k:m,k:n));
+	W(k:m, k) = v;
+end
+
+end
+\end{lstlisting}
+\begin{lstlisting}[language=matlab]
+function Q = formQ (W)
+[m,n] = size(W);
+Q = eye(m);
+for k = n:-1:1
+	v = W(k:m,k);
+	Q(k:m, :) = Q(k:m, :) - 2*v* (v'*Q(k:m, :));
+end
+\end{lstlisting}
+
+2. 使用Givens旋转变化求矩阵$A$的QR分解：\\
+Step1: 计算一个旋转变化矩阵，使得当其作用于$a_{31}$和$a_{41}$时能够使$a_{41}=0$
+\begin{align}
+	\left[\begin{array}{cc}
+	0.707106781186547 & -0.707106781186547 \\
+	0.707106781186547 & 0.707106781186547 
+	\end{array}\right]^{T}
+	\left[\begin{array}{c}
+	1 \\ 1
+	\end{array}\right]
+	=
+	\left[\begin{array}{c}
+	1.414213562373095 \\ 0
+	\end{array}\right] \notag
+\end{align}
+将此变换作用于第3和第4行，得：
+\begin{align}
+	\left[\begin{array}{cccc}
+	1 & 0 & 0 & 0 \\
+	0 & 1 & 0 & 0 \\
+	0 & 0 & 0.707106781186547 & -0.707106781186547 \\
+	0 & 0 & 0.707106781186547 & 0.707106781186547 
+	\end{array}\right]^{T}
+	\left[\begin{array}{ccc}
+	1 & 0 & 0 \\
+	1 & 1 & 0 \\
+	1 & 1 & 1 \\
+	1 & 1 & 1
+	\end{array}\right] \notag\\
+	=
+	\left[\begin{array}{ccc}
+	1 & 0 & 0 \\
+	1 & 1 & 0 \\
+	1.414213562373094 & 1.414213562373094 & 1.414213562373094 \\
+	0 & 0 & 0
+	\end{array}\right] \notag
+\end{align}
+（由于页面宽度限制，也为了方便阅读，以下步骤中的数据均进行了数值精度的舍弃. 注意只是在此书面报告中舍弃了部分数位，而原程序中未舍弃）\\
+Step2: 计算一个旋转变化矩阵，使得当其作用于$a_{21}$和$a_{31}$时能够使$a_{31}=0$
+\begin{align}
+	\left[\begin{array}{cc}
+	0.8165 & -0.5774 \\
+	0.5774 & 0.8165 
+	\end{array}\right]^{T}
+	\left[\begin{array}{c}
+	1 \\
+	1.4142
+	\end{array}\right]
+	=
+	\left[\begin{array}{c}
+	1.7321 \\ 0
+	\end{array}\right] \notag
+\end{align}
+将此变换作用于第2和第3行，得：
+\begin{align}
+	\left[\begin{array}{cccc}
+	1 & 0 & 0 & 0 \\
+	0 & 0.5774 & -0.8165 & 0 \\
+	0 & 0.8165 & 0.5774 & 0 \\
+	0 & 0 & 0 & 1 
+	\end{array}\right]^{T}
+	\left[\begin{array}{ccc}
+	1 & 0 & 0 \\
+	1 & 1 & 0 \\
+	1.4142 & 1.4142 & 1.4142 \\
+	0 & 0 & 0
+	\end{array}\right] \notag\\
+	=
+	\left[\begin{array}{ccc}
+	1 & 0 & 0 \\
+	1.7321 & 1.7321 & 1.1547 \\
+	-1.1102e-16 & -1.1102e-16 & 0.8165 \\
+	0 & 0 & 0
+	\end{array}\right] \notag
+\end{align}
+Step3: 计算一个旋转变化矩阵，使得当其作用于$a_{11}$和$a_{21}$时能够使$a_{21}=0$，将此变换作用于第2和第3行，得：
+\begin{align}
+\left[\begin{array}{cccc}
+0.5000 & -0.8660 & 0 & 0 \\
+0.8660 & 0.50000 & 0 & 0 \\
+0 & 0 & 1 & 0 \\
+0 & 0 & 0 & 1 
+\end{array}\right]^{T}
+\left[\begin{array}{ccc}
+1 & 0 & 0 \\
+1.7321 & 1.7321 & 1.1547 \\
+-1.1102e-16 & -1.1102e-16 & 0.8165 \\
+0 & 0 & 0
+\end{array}\right] \notag\\
+=
+\left[\begin{array}{ccc}
+2 & 1.5 & 1 \\
+-1.1102e-16 & 0.8660 & 0.5774 \\
+-1.1102e-16 & -1.1102e-16 & 0.8165 \\
+0 & 0 & 0
+\end{array}\right] \notag
+\end{align}
+Step4: $\cdots \cdots$ （原理与前面步骤相同，不再赘述）\\
+最终结果：
+\begin{align}
+\begin{aligned}
+	\mathbf{Q} &=
+	\left[\begin{array}{cccc}
+	0.5 & -0.866025403784439 & -0.000000000000000 &                  0\\
+	0.5 &  0.288675134594813 & -0.816496580927726 &                  0\\
+	0.5 &  0.288675134594813 &  0.408248290463863 & -0.707106781186547\\
+	0.5 &  0.288675134594813 &  0.408248290463863 &  0.707106781186547
+	\end{array}\right] \notag\\
+	\mathbf{R} &=
+	\left[\begin{array}{cccc}
+	2.000000000000000 & 1.500000000000000 &  1.000000000000000\\
+	-0.000000000000000 &  0.866025403784439 &  0.577350269189626\\
+	-0.000000000000000        &           0  & 0.816496580927726\\
+	0                 &  0             &      0
+	\end{array}\right] \notag
+\end{aligned}
+\end{align}
+Givens QR分解的代码实现如下：
+\begin{lstlisting}[language=matlab]
+	function [Q,R] = qrgivens(A)
+	% Givens QR Factorization
+	% Input  - A  a symmetric matrix can be factorized as Q*R
+	% Output - Q  the orthogonal matrix
+	%        - R  the upper triangle matrix
+	
+	[m,n] = size(A);
+	Q = eye(m);
+	R = A;
+	
+	for j = 1:n
+	for i = m:-1:(j+1)
+		G = eye(m);
+		[c,s] = givensrotation( R(i-1,j),R(i,j) );
+		G([i-1, i],[i-1, i]) = [c -s; s c];
+		R = G'*R;
+		Q = Q*G;
+	end
+	end
+	
+	end
+\end{lstlisting}
+\begin{lstlisting}[language=matlab]
+	function [c,s] = givensrotation(a,b)
+	
+	if b == 0
+		c = 1;
+		s = 0;
+	else
+		if abs(b) > abs(a)
+			r = a / b;
+			s = 1 / sqrt(1 + r^2);
+			c = s*r;
+		else
+			r = b / a;
+			c = 1 / sqrt(1 + r^2);
+			s = c*r;
+		end
+	end
+	
+	end
+\end{lstlisting}
+\end{document}

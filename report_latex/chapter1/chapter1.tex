@@ -1,0 +1,199 @@
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%{
+    %\documentclass[twoside,11pt]{article}
+    \documentclass[UTF8]{ctexart}
+    %%%%% PACKAGES %%%%%%
+    \usepackage{pgm2016}
+    \usepackage{amsmath}
+    \usepackage{algorithm}
+    \usepackage[noend]{algpseudocode}
+    \usepackage{subcaption}
+    \usepackage[english]{babel}	
+    \usepackage{paralist}	
+    \usepackage[lowtilde]{url}
+    \usepackage{fixltx2e}
+    \usepackage{listings}
+    \usepackage{color}
+    \usepackage{hyperref}
+    \usepackage{mdframed}
+    
+    %\usepackage{auto-pst-pdf}
+    \usepackage{pst-all}
+    \usepackage{pstricks-add}
+    
+    %%%%% MACROS %%%%%%
+    \algrenewcommand\Return{\State \algorithmicreturn{} }
+    \algnewcommand{\LineComment}[1]{\State \(\triangleright\) #1}
+    \renewcommand{\thesubfigure}{\roman{subfigure}}
+    \definecolor{codegreen}{rgb}{0,0.6,0}
+    \definecolor{codegray}{rgb}{0.5,0.5,0.5}
+    \definecolor{codepurple}{rgb}{0.58,0,0.82}
+    \definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+    \lstdefinestyle{mystyle}{
+       backgroundcolor=\color{backcolour},  
+       commentstyle=\color{codegreen},
+       keywordstyle=\color{magenta},
+       numberstyle=\tiny\color{codegray},
+       stringstyle=\color{codepurple},
+       basicstyle=\footnotesize,
+       breakatwhitespace=false,        
+       breaklines=true,                
+       captionpos=b,                    
+       keepspaces=true,                
+       numbers=left,                    
+       numbersep=5pt,                  
+       showspaces=false,                
+       showstringspaces=false,
+       showtabs=false,                  
+       tabsize=2
+    }
+    \lstset{style=mystyle}
+    
+    \newenvironment{problem}[2][问题]
+    {\begin{mdframed}[backgroundcolor=gray!20] \textbf{#1 #2} \\}
+    {\end{mdframed}}
+
+	\newenvironment{dingyi}[2][定义]
+	{\begin{mdframed}[backgroundcolor=gray!20] \textbf{#1 #2} \\}
+		{\end{mdframed}}
+    
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+
+
+%%%%%%%%%%%%%%%%%%%%Information%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand\course{sd03431280}
+\newcommand\courseName{数值计算方法}
+\newcommand\semester{2020·春季}
+\newcommand\assignmentNumber{1}
+\newcommand\studentName{陈路}
+\newcommand\studentEmail{chenlu.scien@gmail.com}
+\newcommand\studentNumber{201800301206}
+\newcommand\addr{泰山学堂2018级计算机取向}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    \ShortHeadings{山东大学\quad \semester\quad  \course\quad \courseName}{\addr \quad \studentName \quad \studentNumber}
+    \firstpageno{1}
+    
+    \begin{document}
+    
+    \title{第\assignmentNumber 章\quad 误差理论}
+    
+    \author{\name \studentName \email \studentEmail \\
+    \studentNumber
+    }
+    
+    \maketitle
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+本文首先简要总结误差理论的相关知识，进而以二次方程求根问题为例讨论减少误差的具体方法，并以幂次运算问题为例讨论减少运算次数的具体策略。
+
+\section{误差理论知识总结}\label{sec:background}
+\subsection{误差的来源及类型}
+计算机在计算过程中的误差主要来自于计算机存储空间的有限性和浮点数运算过程中的精度丢失，具体来说，由于计算机硬件只支持有限位机器数的运算，导致误差在运算中被引入和传播。误差大致可以分为以下四类：
+\begin{enumerate}
+	\item \textbf{模型误差}\quad 用计算机解决科学计算问题首先要建立数学模型，它是对被描述的实际问题进行抽象、简化而得到的，因而是近似的.我们把数学模型与实际问题之间出现的这种误差称为模型误差.
+	\item \textbf{截断误差}\quad 通常指用一个基本表达式替换一个相当复杂的算术表达式时所引入的误差。该术语从用截断泰勒级数替换一个复杂表达式的技术中衍生而来。
+	\item \textbf{舍入误差}\quad 计算机表示的实数受限于尾数的固定精度，因此有时并不能确切地表示真实值，这一类型的误差称为舍入误差。
+	\item \textbf{浮点运算舍入误差}
+\end{enumerate}
+
+\subsection{误差的度量方法}
+误差的测度可以分为绝对误差和相对误差，绝对误差仅仅是真实值与近似值之间的差，而相对误差很大程度上取决于真实值。定义如下：
+\begin{dingyi}{1}
+	设$\hat{p}$是$p$的近似值，则\textbf{绝对误差}是$E_{p}=|p-\hat{p}|$，\textbf{相对误差}是$R_{p}=|p-\hat{p}|/|p|$，其中$p\neq0$.
+\end{dingyi}
+当$|p|$远离1时（大于或小于），相对误差$R_{p}$比绝对误差$E_{p}$能更好地表示近似值的精确程度。由于相对误差直接处理尾数，所以浮点表示主要采用相对误差。
+
+\subsection{序列的收敛性与收敛阶}
+\begin{dingyi}{2}
+	设$\lim _{n \rightarrow \infty} x_{n}=x$，有序列$\left\{r_{n}\right\}_{n=1}^{\infty}$，且$\lim _{n \rightarrow \infty} r_{n}=0$。如果存在常量$K > 0$，满足
+	\begin{align}
+	\frac{\left|x_{n}-x\right|}{\left|r_{n}\right|} \leqslant K, \quad n \text { 足够大 }\notag
+	\end{align}
+	则称$\left\{x_{n}\right\}_{n=1}^{\infty}$以\textbf{收敛阶$O(r_{n})$}收敛于$x$.
+\end{dingyi}
+
+\subsection{误差的传播}
+考虑数$p$和$q$（真实值），它们的近似值分别为$\hat{p}$和$\hat{q}$，误差分别为$\epsilon_{p}$和$\epsilon_{q}$，即$p=\hat{p}+\epsilon_{p}$，$q=\hat{q}+\epsilon_{q}$。分别观察在加法、乘法运算中误差的传播：
+\begin{itemize}
+	\item \textbf{加法} $p+q=\left(\widehat{p}+\epsilon_{p}\right)+\left(\widehat{q}+\epsilon_{q}\right)=(\widehat{p}+\widehat{q})+\left(\epsilon_{p}+\epsilon_{q}\right)$
+	\item \textbf{乘法} $p q=\left(\widehat{p}+\epsilon_{p}\right)\left(\widehat{q}+\epsilon_{q}\right)=\widehat{p} \widehat{q} +\widehat{p} \epsilon_{q}+\widehat{q} \epsilon_{p}+\epsilon_{p} \epsilon_{q}$
+\end{itemize}
+可见，对于加法运算，和的误差是每个加数误差的和；而在乘法运算中，若$\hat{p}$和$\hat{q}$的绝对值大于1，那么原误差$\epsilon_{p}$和$\epsilon_{q}$将被放大为$\hat{p} \epsilon_{p}$和$\hat{q} \epsilon_{q}$；进一步观察其相对误差：
+\begin{align}
+	R_{p q}=\frac{p q-\widehat{p} \widehat{q}}{p q}=\frac{\widehat{p} \epsilon_{q}+\widehat{q} \epsilon_{p}+\epsilon_{p} \epsilon_{q}}{p q}=\frac{\widehat{p} \epsilon_{q}}{p q}+\frac{\widehat{q} \epsilon_{p}}{p q}+\frac{\epsilon_{p} \epsilon_{q}}{p q}\notag
+\end{align}
+这表明$p$和$q$乘积的相对误差大致等于$\hat{p}$和$\hat{q}$相对误差的和.
+
+\begin{dingyi}{3}
+	设$\epsilon$表示初始误差，$\epsilon(n)$表示第n步计算后的误差增长. 如果$|\epsilon(n)| \approx n \epsilon$，则称误差线性增长. 如果$|\epsilon(n)| \approx K^{n} \epsilon$，则称误差呈指数增长.
+	若$K>1$，则当$n \rightarrow \infty$时，指数误差的增长无界；若$0<K<1$，则当$n \rightarrow \infty$时，指数误差的增长趋于0.
+\end{dingyi}
+
+\section{分析讨论题}
+
+\subsection{二次方程求根}
+
+\begin{problem}{1}
+求方程$x^{2}+(\alpha+\beta) x+10^{9}=0$的根，其中，$\alpha=-10^{9}, \beta=-1$，讨论如何设计计算格式才能有效地减少误差，提高计算精度.
+\end{problem}
+
+\textbf{解}：
+我们已知，方程$ax^2 + bx + c = 0$（其中$a \neq 0, b^2 - 4ac > 0$）的根可以通过以下求根公式获得：
+\begin{align}
+	x_{1}=\frac{-b+\sqrt{b^{2}-4 a c}}{2 a}, \quad x_{2}=\frac{-b-\sqrt{b^{2}-4 a c}}{2 a}\label{1}
+\end{align}
+对上式进行分子有理化，得到等价公式：
+\begin{align}
+	x_{1}=\frac{-2 c}{b+\sqrt{b^{2}-4 a c}}, \quad x_{2}=\frac{-2 c}{b-\sqrt{b^{2}-4 a c}}\label{2}
+\end{align}
+当$|b| \approx \sqrt{b^{2}-4 a c}$时，为避免其值过小引起巨量消失（catastrophic cancellation）而造成精度损失，在求解时可以进行以下处理：
+\begin{itemize}
+	\item 如果$b>0$，用公式\eqref{2}计算$x_1$，用公式\eqref{1}计算$x_2$
+	\item 如果$b<0$，用公式\eqref{1}计算$x_1$，用公式\eqref{2}计算$x_2$
+\end{itemize}
+求解程序如下：
+\begin{lstlisting}[language=matlab]
+function [x1,x2] = solveQuadEq(a,b,c)
+% Solve the roots of a quadratic equation
+% Input - a,b,c    coefficients of the equation
+% Output - x1,x2   roots of the equation
+
+% Initialization
+x1 = 0;
+x2 = 0;
+delta = b^2 - 4*a*c;
+
+% Compute the roots
+if delta>=0
+	if b>0
+		x1 = (-2*c)/(b+sqrt(delta));
+		x2 = (-b-sqrt(delta))/2*a;
+	else 
+		x1 = (-b+sqrt(delta))/2*a;
+		x2 = (-2*c)/(b-sqrt(delta));
+	end
+end
+end
+\end{lstlisting}
+
+\subsection{幂次运算}
+
+\begin{problem}{2}
+	以计算$x^{31}$为例，讨论如何设计计算格式才能减少计算次数.
+\end{problem}
+
+\textbf{解}：观察到$31 = 16 + 8 + 4 + 2 + 1$，采用以下“二次累积”计算策略\\
+Step1: 计算$x\cdot x$得$x^2$\\
+Step2: 计算$x^2\cdot x^2$得$x^4$\\
+Step3: 计算$x^4\cdot x^4$得到 $x^8$\\
+Step4: 计算$x^8\cdot x^8$得到 $x^{16}$\\
+Step5: 将前几步的所有结果相乘，得：
+$$x\cdot x^2 \cdot x^4 \cdot x^8 \cdot x^{16} = x^{31}$$
+
+
+
+\end{document}
